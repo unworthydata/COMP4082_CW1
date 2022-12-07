@@ -1,0 +1,26 @@
+
+
+Granularity: Half
+    Total time: 1742.9058045s
+    Best average reward: -382.1
+    Best time: 0.014297331010457128s
+
+Granularity: 1x
+    Total time: 494.1485901s
+    Best average reward: -206.06
+    Best time: 0.008133974014781416s
+
+Granularity: 2x
+    Total time: 155.6164087s
+    Best average reward: -155.5
+    Best time: 0.006275925009977073s
+
+Granularity: 5x
+    Total time: 144.1600883s
+    Best average reward: -146.63
+    Best time: 0.006079587992280722s
+
+Granularity: 10x
+    Total time: 241.9785685s
+    Best average reward: -275.11
+    Best time: 0.010422570980153978s
