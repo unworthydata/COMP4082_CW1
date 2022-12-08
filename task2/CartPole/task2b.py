@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 import time
 
 # Import and initialize Mountain Car Environment
-env = gym.make('CartPole-v1l')
-env.reset()
+env = gym.make('CartPole-v1', render_mode="human")
+state, _ = env.reset()
 EPISODES = 10000
 
 
@@ -14,9 +14,11 @@ def QLearning(env, learning, discount, epsilon, min_eps, episodes, resolution):
     # start counter
     total_time_start = time.perf_counter()
 
+    print(env.observation_space.high - env.observation_space.low)
     # Determine size of discretized state space
-    num_states = (env.observation_space.high - env.observation_space.low) * np.array(
-        [10 * resolution, 100 * resolution])
+    state_delta = (env.observation_space.high - env.observation_space.low).tolist()
+    state_delta
+    num_states = [state_delta[0] * 10, state_delta[2] * 100]
     num_states = np.round(num_states, 0).astype(int) + 1
 
     # Initialize Q table
@@ -35,21 +37,18 @@ def QLearning(env, learning, discount, epsilon, min_eps, episodes, resolution):
 
     # Run Q learning algorithm
     for i in range(episodes):
-        if i >= episodes - 20:
-            env.render()
-
         tic = time.perf_counter()
         # Initialize parameters
-        done = False
+        terminated = truncated = False
         tot_reward, reward = 0, 0
         state, _ = env.reset()
 
         # Discretize state
-        state_adj = (state - env.observation_space.low) * \
-            np.array([10 * resolution, 100 * resolution])
+        low = env.observation_space.low.tolist()
+        state_adj = [(state[0] - low[0]) * 10, (state[2] - low[2]) * 100]
         state_adj = np.round(state_adj, 0).astype(int)
 
-        while not done:
+        while not terminated and not truncated:
             # Determine next action - epsilon greedy strategy
             if np.random.random() < 1 - epsilon:
                 action = np.argmax(Q[state_adj[0], state_adj[1]])
@@ -57,17 +56,17 @@ def QLearning(env, learning, discount, epsilon, min_eps, episodes, resolution):
                 action = np.random.randint(0, env.action_space.n)
 
             # Get next state and reward
-            state2, reward, done, info, _ = env.step(action)
+            state2, reward, terminated, truncated, _ = env.step(action)
+            reward = reward_updater(state, reward)
 
             # Discretize state2
-            state2_adj = (state2 - env.observation_space.low) * \
-                np.array([10 * resolution, 100 * resolution])
+            state2_adj = [(state2[0] - low[0]) * 10,
+                          (state2[2] - low[2]) * 100]
             state2_adj = np.round(state2_adj, 0).astype(int)
 
             # Allow for terminal states
-            if done and state2[0] >= 0.5:
+            if terminated:
                 Q[state_adj[0], state_adj[1], action] = reward
-
             # Adjust Q value for current state
             else:
                 delta = learning * (reward +
@@ -93,11 +92,10 @@ def QLearning(env, learning, discount, epsilon, min_eps, episodes, resolution):
             avg_episode_reward_list.append(avg_episode_reward)
             reward_list = []
 
+            # Track time taken
             avg_episode_time = np.mean(time_list)
             avg_episode_time_list.append(avg_episode_time)
             time_list = []
-
-        # Track time taken
 
         # print results + time every 100 episodes
         if (i + 1) % 100 == 0:
@@ -112,7 +110,7 @@ def QLearning(env, learning, discount, epsilon, min_eps, episodes, resolution):
     return avg_episode_reward_list, avg_episode_time_list, Q, total_time
 
 
-def output(rewards, times, total_time, resolution='1x'):
+def output(rewards, times, total_time, run, resolution='1x'):
     results = f"""Resolution: {resolution}
     Total time: {total_time:0.7f}s
     Best average reward: {rewards[-1]}
@@ -122,10 +120,12 @@ def output(rewards, times, total_time, resolution='1x'):
     print(results)
 
     here = os.path.dirname(os.path.realpath(__file__))
-    subdirectory = os.path.join(here, resolution)
-    filepath = os.path.join(
-        subdirectory, f"{resolution}_experiment_results.txt")
+    run_directory = os.path.join(here, f"run_{run}")
+    subdirectory = os.path.join(run_directory, resolution)
+    filepath = os.path.join(subdirectory, f"{resolution}_experiment_results.txt")
 
+    if not os.path.isdir(run_directory):
+        os.mkdir(run_directory)
     if not os.path.isdir(subdirectory):
         os.mkdir(subdirectory)
 
@@ -153,6 +153,10 @@ def output(rewards, times, total_time, resolution='1x'):
     return results
 
 
+def reward_updater(state, env_reward):
+    return env_reward - (abs(state[0]) + abs(state[2])) / 2.5
+
+
 def stability(rewards):
     # using relative error to measure the avg rate of change of rewards per 100 episodes,
     # to understand the stability of the algorithm
@@ -169,73 +173,72 @@ def stability(rewards):
     return (1 - avg_stability) * 100
 
 
-# Run Q-learning algorithm at different granularities
-experiment_results = ""
-outcomes = {}
+for run in range(1, 4):
+    # Run Q-learning algorithm at different granularities
+    experiment_results = ""
+    outcomes = {}
 
-rewards, times, Q, total_time = QLearning(
-    env, 0.2, 0.9, 0.8, 0, EPISODES, 0.25)
-experiment_results += "\n\n" + output(rewards, times, total_time, "Quarter")
-outcomes["Quarter"] = [rewards, times]
+    rewards, times, Q, total_time = QLearning(env, 0.2, 0.9, 0.8, 0, EPISODES, 0.25)
+    experiment_results += "\n\n" + output(rewards, times, total_time, run, "Quarter")
+    outcomes["Quarter"] = [rewards, times]
 
+    rewards, times, Q, total_time = QLearning(env, 0.2, 0.9, 0.8, 0, EPISODES, 0.5)
+    experiment_results += "\n\n" + output(rewards, times, total_time, run, "Half")
+    outcomes["Half"] = [rewards, times]
 
-rewards, times, Q, total_time = QLearning(env, 0.2, 0.9, 0.8, 0, EPISODES, 0.5)
-experiment_results += "\n\n" + output(rewards, times, total_time, "Half")
-outcomes["Half"] = [rewards, times]
+    rewards, times, Q, total_time = QLearning(env, 0.2, 0.9, 0.8, 0, EPISODES, 1)
+    experiment_results += "\n\n" + output(rewards, times, total_time, run, "1x")
+    outcomes["1x"] = [rewards, times]
 
-rewards, times, Q, total_time = QLearning(env, 0.2, 0.9, 0.8, 0, EPISODES, 1)
-experiment_results += "\n\n" + output(rewards, times, total_time, "1x")
-outcomes["1x"] = [rewards, times]
+    rewards, times, Q, total_time = QLearning(env, 0.2, 0.9, 0.8, 0, EPISODES, 2)
+    experiment_results += "\n\n" + output(rewards, times, total_time, run, "2x")
+    outcomes["2x"] = [rewards, times]
 
-rewards, times, Q, total_time = QLearning(env, 0.2, 0.9, 0.8, 0, EPISODES, 2)
-experiment_results += "\n\n" + output(rewards, times, total_time, "2x")
-outcomes["2x"] = [rewards, times]
+    rewards, times, Q, total_time = QLearning(env, 0.2, 0.9, 0.8, 0, EPISODES, 5)
+    experiment_results += "\n\n" + output(rewards, times, total_time, run, "5x")
+    outcomes["5x"] = [rewards, times]
 
-rewards, times, Q, total_time = QLearning(env, 0.2, 0.9, 0.8, 0, EPISODES, 5)
-experiment_results += "\n\n" + output(rewards, times, total_time, "5x")
-outcomes["5x"] = [rewards, times]
+    rewards, times, Q, total_time = QLearning(env, 0.2, 0.9, 0.8, 0, EPISODES, 10)
+    experiment_results += "\n\n" + output(rewards, times, total_time, run, "10x")
+    outcomes["10x"] = [rewards, times]
 
-rewards, times, Q, total_time = QLearning(env, 0.2, 0.9, 0.8, 0, EPISODES, 10)
-experiment_results += "\n\n" + output(rewards, times, total_time, "10x")
-outcomes["10x"] = [rewards, times]
+    rewards, times, Q, total_time = QLearning(env, 0.2, 0.9, 0.8, 0, EPISODES, 100)
+    experiment_results += "\n\n" + output(rewards, times, total_time, run, "100x")
+    outcomes["100x"] = [rewards, times]
 
-rewards, times, Q, total_time = QLearning(env, 0.2, 0.9, 0.8, 0, EPISODES, 100)
-experiment_results += "\n\n" + output(rewards, times, total_time, "100x")
-outcomes["100x"] = [rewards, times]
+    plt.plot(100 * (np.arange(len(rewards)) + 1),
+             outcomes["Quarter"][0], label="0.25x")
+    plt.plot(100 * (np.arange(len(rewards)) + 1),
+             outcomes["Half"][0], label="0.5x")
+    plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["1x"][0], label="1x")
+    plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["2x"][0], label="2x")
+    plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["5x"][0], label="5x")
+    plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["10x"][0], label="10x")
+    plt.plot(100 * (np.arange(len(rewards)) + 1),
+             outcomes["100x"][0], label="100x")
+    plt.legend()
+    plt.xlabel('Episodes')
+    plt.ylabel('Average Reward')
+    plt.title('Average Reward vs Episodes')
+    plt.savefig("rewards.jpg")
+    plt.close()
 
-plt.plot(100 * (np.arange(len(rewards)) + 1),
-         outcomes["Quarter"][0], label="0.25x")
-plt.plot(100 * (np.arange(len(rewards)) + 1),
-         outcomes["Half"][0], label="0.5x")
-plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["1x"][0], label="1x")
-plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["2x"][0], label="2x")
-plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["5x"][0], label="5x")
-plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["10x"][0], label="10x")
-plt.plot(100 * (np.arange(len(rewards)) + 1),
-         outcomes["100x"][0], label="100x")
-plt.legend()
-plt.xlabel('Episodes')
-plt.ylabel('Average Reward')
-plt.title('Average Reward vs Episodes')
-plt.savefig("rewards.jpg")
-plt.close()
+    plt.plot(100 * (np.arange(len(rewards)) + 1),
+             outcomes["Quarter"][1], label="0.25x")
+    plt.plot(100 * (np.arange(len(rewards)) + 1),
+             outcomes["Half"][1], label="0.5x")
+    plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["1x"][1], label="1x")
+    plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["2x"][1], label="2x")
+    plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["5x"][1], label="5x")
+    plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["10x"][1], label="10x")
+    plt.plot(100 * (np.arange(len(rewards)) + 1),
+             outcomes["100x"][1], label="100x")
+    plt.legend()
+    plt.xlabel('Episodes')
+    plt.ylabel('Average Time (in seconds)')
+    plt.title('Average Time vs Episodes')
+    plt.savefig("times.jpg")
+    plt.close()
 
-plt.plot(100 * (np.arange(len(rewards)) + 1),
-         outcomes["Quarter"][1], label="0.25x")
-plt.plot(100 * (np.arange(len(rewards)) + 1),
-         outcomes["Half"][1], label="0.5x")
-plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["1x"][1], label="1x")
-plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["2x"][1], label="2x")
-plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["5x"][1], label="5x")
-plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["10x"][1], label="10x")
-plt.plot(100 * (np.arange(len(rewards)) + 1),
-         outcomes["100x"][1], label="100x")
-plt.legend()
-plt.xlabel('Episodes')
-plt.ylabel('Average Time (in seconds)')
-plt.title('Average Time vs Episodes')
-plt.savefig("times.jpg")
-plt.close()
-
-with open("all_experiment_results.txt", 'w') as f:
-    print(experiment_results, file=f)
+    with open("all_experiment_results.txt", 'w') as f:
+        print(experiment_results, file=f)

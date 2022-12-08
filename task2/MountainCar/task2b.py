@@ -251,5 +251,5 @@ for run in range(1, 4):
     plt.savefig("times.jpg")
     plt.close()
 
-    with open("all_experiment_results.txt", 'w') as f:
+    with open("known/all_experiment_results.txt", 'w') as f:
         print(experiment_results, file=f)
