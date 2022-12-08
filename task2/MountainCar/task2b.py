@@ -65,7 +65,7 @@ def QLearning(env, learning, discount, epsilon, min_eps, episodes, resolution):
 
             # Allow for terminal states
             if terminated:
-                Q[state_adj[0], state_adj[1], action] = reward
+                Q[state_adj[0], state_adj[1], action] = reward + 100
             # Adjust Q value for current state
             else:
                 delta = learning * (reward +

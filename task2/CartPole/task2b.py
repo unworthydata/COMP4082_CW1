@@ -7,7 +7,7 @@ import time
 # Import and initialize Mountain Car Environment
 env = gym.make('CartPole-v1')
 state, _ = env.reset()
-EPISODES = 100000
+EPISODES = 500_000
 
 
 def QLearning(env, learning, discount, epsilon, min_eps, episodes, resolution):
@@ -15,10 +15,18 @@ def QLearning(env, learning, discount, epsilon, min_eps, episodes, resolution):
     total_time_start = time.perf_counter()
 
     # Determine size of discretized state space
-    num_states = [30, 30, 50, 50]
+    numBins = 20
+    obsSpaceSize = len(env.observation_space.high)
 
-    # Initialize Q table
-    Q = np.random.uniform(low=0, high=1, size=(num_states[0], num_states[1], num_states[2], num_states[3], env.action_space.n))
+    # Get the size of each bucket
+    bins = [
+        np.linspace(-4.8, 4.8, numBins),
+        np.linspace(-4, 4, numBins),
+        np.linspace(-.418, .418, numBins),
+        np.linspace(-4, 4, numBins)
+    ]
+
+    Q = np.random.uniform(low=0, high=1, size=([numBins] * obsSpaceSize + [env.action_space.n]))
 
     # Initialize variables to track rewards
     reward_list = []
@@ -42,7 +50,6 @@ def QLearning(env, learning, discount, epsilon, min_eps, episodes, resolution):
 
         # Discretize state
         state_adj = normalize_state(state)
-        state_adj = np.round(state_adj, 0).astype(int)
 
         while not terminated:
             # Determine next action - epsilon greedy strategy
@@ -57,7 +64,6 @@ def QLearning(env, learning, discount, epsilon, min_eps, episodes, resolution):
 
             # Discretize state2
             state2_adj = normalize_state(state2)
-            state2_adj = np.round(state2_adj, 0).astype(int)
 
             # Allow for terminal states
             if terminated:
@@ -149,11 +155,10 @@ def output(rewards, times, total_time, run, resolution='1x'):
 
 
 def normalize_state(state):
-    state[0] /= 2.5
-    state[1] /= 2.5
-    state[2] /= 0.3
-    state[3] /= 0.3
-    return state
+    np_array_win_size = np.array([0.25, 0.25, 0.01, 0.1])
+    discrete_state = state / np_array_win_size + np.array([15, 10, 1, 10])
+    return tuple(discrete_state.astype(int))
+
 
 def reward_updater(state, env_reward):
     # the closer the cart is to the center, and the straighter the pole is, the better
