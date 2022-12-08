@@ -8,6 +8,15 @@ totalReward = 0
 print(env.observation_space.high)
 print(env.observation_space.low)
 
+observation, reward, terminated, truncated, info = env.step(env.action_space.sample())
+print(observation)
+observation, reward, terminated, truncated, info = env.step(env.action_space.sample())
+print(observation)
+observation, reward, terminated, truncated, info = env.step(env.action_space.sample())
+print(observation)
+observation, reward, terminated, truncated, info = env.step(env.action_space.sample())
+print(observation)
+
 # for i in range(10000):
 #     env.render()
 #     observation, reward, terminated, truncated, info = env.step(env.action_space.sample())

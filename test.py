@@ -57,7 +57,7 @@ def QLearning(env, learning, discount, epsilon, min_eps, episodes, resolution):
             state2, reward, terminated, truncated, _ = env.step(action)
             # update the reward, considering the original reward (-1 for each timestep) + energy stored * 100 as a
             # scaling factor to keep make both variables equally important (both to 1 decimal)
-            reward += energy_stored(state2)
+            reward += energy_stored(state2) * 1000
 
             # Discretize state2
             state2_adj = (state2 - env.observation_space.low) * np.array([10 * resolution, 100 * resolution])
@@ -158,8 +158,8 @@ def energy_stored(observations):
     mass = 1
     # gravity pre-determined by the environment
     gravity = 0.0025
-    position = observations[0] * 10
-    velocity = observations[1] * 100
+    position = observations[0]
+    velocity = observations[1]
     kinetic = 0.5 * mass * (velocity ** 2)
     potential = mass * gravity * np.cos(3 * position)
 
@@ -251,5 +251,5 @@ for run in range(1, 4):
     plt.savefig("times.jpg")
     plt.close()
 
-    with open("all_experiment_results.txt", 'w') as f:
+    with open("known/all_experiment_results.txt", 'w') as f:
         print(experiment_results, file=f)
