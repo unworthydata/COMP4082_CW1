@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import time
 
 # Import and initialize Mountain Car Environment
-env = gym.make('MountainCar-v0', render_mode="human")
+env = gym.make('MountainCar-v0')
 env.reset()
 total_time_start = time.perf_counter()
 

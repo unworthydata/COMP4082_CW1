@@ -1,7 +1,7 @@
 import torch
 import gym
 import time
-from task2a import normalize_state, state_reward
+from task2a_old import normalize_state, state_reward
 from Model import Model
 
 env = gym.make('CartPole-v1', render_mode="human")
