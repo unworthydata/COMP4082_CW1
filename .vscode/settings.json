@@ -1,5 +1,0 @@
-{
-	"python.linting.pylintArgs": ["--generate-members"],
-	"python.linting.pylintEnabled": true,
-	"python.linting.enabled": true
-}
