@@ -1,0 +1,129 @@
+
+
+Resolution: Quarter
+    Total time: 86.1208048s
+    Best average reward: 3.5018194957147277
+    Best time: 0.008434967000048345s
+    Stability: 531.6482639205359%
+
+Resolution: Half
+    Total time: 87.6819384s
+    Best average reward: 7.528490443151266
+    Best time: 0.00867582000008042s
+    Stability: 112.16408669160778%
+
+Resolution: 1x
+    Total time: 89.4215764s
+    Best average reward: 3.5982481757977114
+    Best time: 0.008907048999990366s
+    Stability: 373.4183233577345%
+
+Resolution: 2x
+    Total time: 89.2849209s
+    Best average reward: 5.0253473117428165
+    Best time: 0.008842105000076117s
+    Stability: 274.4375852278599%
+
+Resolution: 5x
+    Total time: 89.4220609s
+    Best average reward: -29.149007614882564
+    Best time: 0.008925430000035704s
+    Stability: 1629.9253234446596%
+
+Resolution: 10x
+    Total time: 88.8722543s
+    Best average reward: -1.2572609740526495
+    Best time: 0.008746433000105754s
+    Stability: 270.6376964819035%
+
+Resolution: 100x
+    Total time: 87.9148515s
+    Best average reward: -188.909630684711
+    Best time: 0.008781135000081122s
+    Stability: 348.9998619612061%
+
+
+Resolution: Quarter
+    Total time: 87.3879255s
+    Best average reward: -1.0157144823255848
+    Best time: 0.008689202000059595s
+    Stability: 1528.5203024948294%
+
+Resolution: Half
+    Total time: 87.2934967s
+    Best average reward: 2.4862443124962703
+    Best time: 0.008695849000050658s
+    Stability: 550.1592321720038%
+
+Resolution: 1x
+    Total time: 87.0837467s
+    Best average reward: 7.403268238226544
+    Best time: 0.008615899000014906s
+    Stability: 318.2790219666644%
+
+Resolution: 2x
+    Total time: 87.4929741s
+    Best average reward: -1.4937897881898488
+    Best time: 0.00866189200005465s
+    Stability: 560.0012863464036%
+
+Resolution: 5x
+    Total time: 87.2588906s
+    Best average reward: -19.363056445086244
+    Best time: 0.008705512000015006s
+    Stability: 408.3309476264127%
+
+Resolution: 10x
+    Total time: 87.9466583s
+    Best average reward: -2.284501864731933
+    Best time: 0.008731327999976201s
+    Stability: 356.8207135417938%
+
+Resolution: 100x
+    Total time: 89.2222953s
+    Best average reward: -190.6347701935688
+    Best time: 0.008924914999970496s
+    Stability: 225.4593616316933%
+
+
+Resolution: Quarter
+    Total time: 86.6980262s
+    Best average reward: 1.8156341501380158
+    Best time: 0.00863656000004994s
+    Stability: 400.8128244141341%
+
+Resolution: Half
+    Total time: 87.3145499s
+    Best average reward: -0.01718027220008027
+    Best time: 0.00877460699999574s
+    Stability: 10432.008405029821%
+
+Resolution: 1x
+    Total time: 87.4217407s
+    Best average reward: 2.1868544448550526
+    Best time: 0.008675245000013092s
+    Stability: 322.75443248429644%
+
+Resolution: 2x
+    Total time: 87.4869044s
+    Best average reward: -3.4026859205093114
+    Best time: 0.00866842400006135s
+    Stability: 381.24428465558555%
+
+Resolution: 5x
+    Total time: 88.0419199s
+    Best average reward: 4.695465273098218
+    Best time: 0.008717584000096394s
+    Stability: 214.81529042355834%
+
+Resolution: 10x
+    Total time: 88.1425304s
+    Best average reward: -0.7899767541977798
+    Best time: 0.008838885000004666s
+    Stability: 282.21658789511685%
+
+Resolution: 100x
+    Total time: 87.8693997s
+    Best average reward: -189.44602071332238
+    Best time: 0.008831965000099444s
+    Stability: 404.9938752582078%

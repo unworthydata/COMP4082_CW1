@@ -190,7 +190,7 @@ def stability(rewards):
     # len(rewards) + 2 because we skipped the first and last rewards in the loop
     avg_stability = stability / (len(rewards) + 2)
     # 1 - avg_stability because we want stability/similarity in rate of change, not difference
-    return (1 - avg_stability) * 100
+    return avg_stability * 100
 
 
 for run in range(1, 4):
@@ -259,5 +259,6 @@ for run in range(1, 4):
     plt.savefig("times.jpg")
     plt.close()
 
-    with open("all_experiment_results.txt", 'w') as f:
+    with open("all_experiment_results.txt", 'a') as f:
+        print(run, "\n")
         print(experiment_results, file=f)
