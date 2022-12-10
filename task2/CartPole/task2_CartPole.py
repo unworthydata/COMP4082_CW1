@@ -11,8 +11,8 @@ UPDATE_EVERY = 100
 
 
 # Create bins and Q table
-def create_bins_and_q_table(resolution):
-    numBins = int(10 * resolution)
+def create_bins_and_q_table(granularity):
+    numBins = int(10 * granularity)
     obsSpaceSize = len(env.observation_space.high)
 
     # Get the size of each bucket
@@ -36,13 +36,10 @@ def get_discrete_state(state, bins, obsSpaceSize):
     return tuple(stateIndex)
 
 
-def QLearning(env, learning, discount, epsilon, min_eps, episodes, resolution):
+def QLearning(env, learning, discount, epsilon, min_eps, episodes, granularity):
     total_time_start = time.perf_counter()
     epsilon_decay_value = (epsilon - min_eps) / episodes
-    bins, obsSpaceSize, qTable = create_bins_and_q_table(resolution)
-
-    previousCnt = []  # array of all scores over runs
-    metrics = {'ep': [], 'avg': [], 'min': [], 'max': []}  # metrics recorded for graph
+    bins, obsSpaceSize, qTable = create_bins_and_q_table(granularity)
 
     # Initialize variables to track rewards and times
     reward_list = []
@@ -120,11 +117,11 @@ def QLearning(env, learning, discount, epsilon, min_eps, episodes, resolution):
     total_time_end = time.perf_counter()
     total_time = total_time_end - total_time_start
 
-    return avg_episode_reward_list, avg_episode_time_list, qTable, total_time
+    return avg_episode_reward_list, avg_episode_time_list, total_time
 
 
-def output(rewards, times, total_time, run, resolution='1x'):
-    results = f"""Resolution: {resolution}
+def output(rewards, times, total_time, granularity='1x', run="1"):
+    results = f"""Granularity: {granularity}
     Total time: {total_time:0.7f}s
     Best average reward: {rewards[-1]}
     Best time: {times[-1]}s
@@ -134,8 +131,8 @@ def output(rewards, times, total_time, run, resolution='1x'):
 
     here = os.path.dirname(os.path.realpath(__file__))
     run_directory = os.path.join(here, f"run_{run}")
-    subdirectory = os.path.join(run_directory, resolution)
-    filepath = os.path.join(subdirectory, f"{resolution}_experiment_results.txt")
+    subdirectory = os.path.join(run_directory, granularity)
+    filepath = os.path.join(subdirectory, f"{granularity}_experiment_results.txt")
 
     if not os.path.isdir(run_directory):
         os.mkdir(run_directory)
@@ -152,7 +149,7 @@ def output(rewards, times, total_time, run, resolution='1x'):
     plt.xlabel('Episodes')
     plt.ylabel('Average Reward')
     plt.title('Average Reward vs Episodes')
-    plt.savefig(os.path.join(subdirectory, f"{resolution}_rewards.jpg"))
+    plt.savefig(os.path.join(subdirectory, f"{granularity}_rewards.jpg"))
     plt.close()
 
     # Plot Time
@@ -160,8 +157,12 @@ def output(rewards, times, total_time, run, resolution='1x'):
     plt.xlabel('Episodes')
     plt.ylabel('Average Time (in seconds)')
     plt.title('Average Time vs Episodes')
-    plt.savefig(os.path.join(subdirectory, f"{resolution}_times.jpg"))
+    plt.savefig(os.path.join(subdirectory, f"{granularity}_times.jpg"))
     plt.close()
+
+    with open(os.path.join(here, f"all_experiment_results.txt"), 'a') as f:
+        print(f"\n\nRun: {run}:\n\n", file=f)
+        print(f"{results}", file=f)
 
     return results
 
@@ -183,67 +184,39 @@ def stability(rewards):
     return avg_stability * 100
 
 
+def run_experiment(granularity_label, granularity_multiplier, run="1"):
+    rewards, times, total_time = QLearning(env, 0.2, 0.9, 0.8, 0, EPISODES, granularity_multiplier)
+    output(rewards, times, total_time, granularity_label, run)
+    return rewards, times
+
+
+# set up all granularities here so we can loop over them, instead of repeating code
+granularities = {"Quarter": 0.25, "Half": 0.5, "1x": 1, "2x": 2, "5x": 5, "10x": 10}
+here = os.path.dirname(os.path.realpath(__file__))
+
 for run in range(1, 4):
     # Run Q-learning algorithm at different granularities
-    experiment_results = ""
     outcomes = {}
 
-    rewards, times, Q, total_time = QLearning(env, 0.2, 0.9, 0.8, 0, EPISODES, 0.25)
-    experiment_results += "\n\n" + output(rewards, times, total_time, run, "Quarter")
-    outcomes["Quarter"] = [rewards, times]
+    for granularity in granularities:
+        outcomes[granularity] = list(run_experiment(granularity, granularities[granularity], run))
 
-    rewards, times, Q, total_time = QLearning(env, 0.2, 0.9, 0.8, 0, EPISODES, 0.5)
-    experiment_results += "\n\n" + output(rewards, times, total_time, run, "Half")
-    outcomes["Half"] = [rewards, times]
-
-    rewards, times, Q, total_time = QLearning(env, 0.2, 0.9, 0.8, 0, EPISODES, 1)
-    experiment_results += "\n\n" + output(rewards, times, total_time, run, "1x")
-    outcomes["1x"] = [rewards, times]
-
-    rewards, times, Q, total_time = QLearning(env, 0.2, 0.9, 0.8, 0, EPISODES, 2)
-    experiment_results += "\n\n" + output(rewards, times, total_time, run, "2x")
-    outcomes["2x"] = [rewards, times]
-
-    rewards, times, Q, total_time = QLearning(env, 0.2, 0.9, 0.8, 0, EPISODES, 5)
-    experiment_results += "\n\n" + output(rewards, times, total_time, run, "5x")
-    outcomes["5x"] = [rewards, times]
-
-    rewards, times, Q, total_time = QLearning(env, 0.2, 0.9, 0.8, 0, EPISODES, 10)
-    experiment_results += "\n\n" + output(rewards, times, total_time, run, "10x")
-    outcomes["10x"] = [rewards, times]
-
-    plt.plot(100 * (np.arange(len(rewards)) + 1),
-             outcomes["Quarter"][0], label="0.25x")
-    plt.plot(100 * (np.arange(len(rewards)) + 1),
-             outcomes["Half"][0], label="0.5x")
-    plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["1x"][0], label="1x")
-    plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["2x"][0], label="2x")
-    plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["5x"][0], label="5x")
-    plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["10x"][0], label="10x")
+    for granularity in granularities:
+        plt.plot(100 * (np.arange(EPISODES / UPDATE_EVERY) + 1),
+             outcomes[granularity][0], label=f"{granularity}")
     plt.legend()
     plt.xlabel('Episodes')
     plt.ylabel('Average Reward')
     plt.title('Average Reward vs Episodes')
-    plt.savefig("rewards.jpg")
+    plt.savefig(os.path.join(here, f"rewards.jpg"))
     plt.close()
 
-    plt.plot(100 * (np.arange(len(rewards)) + 1),
-             outcomes["Quarter"][1], label="0.25x")
-    plt.plot(100 * (np.arange(len(rewards)) + 1),
-             outcomes["Half"][1], label="0.5x")
-    plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["1x"][1], label="1x")
-    plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["2x"][1], label="2x")
-    plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["5x"][1], label="5x")
-    plt.plot(100 * (np.arange(len(rewards)) + 1), outcomes["10x"][1], label="10x")
+    for granularity in granularities:
+        plt.plot(100 * (np.arange(EPISODES / UPDATE_EVERY) + 1),
+             outcomes[granularity][1], label=f"{granularity}")
     plt.legend()
     plt.xlabel('Episodes')
     plt.ylabel('Average Time (in seconds)')
     plt.title('Average Time vs Episodes')
-    plt.savefig("times.jpg")
+    plt.savefig(os.path.join(here, f"times.jpg"))
     plt.close()
-
-    with open("all_experiment_results.txt", 'a') as f:
-        print("\n", file=f)
-        print(f"Run: {run}:", file=f)
-        print("\n", file=f)
-        print(experiment_results, file=f)
