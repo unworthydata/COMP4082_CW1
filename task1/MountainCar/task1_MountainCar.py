@@ -128,5 +128,5 @@ plt.xlabel('Episodes')
 plt.ylabel('Average Time (in seconds)')
 # plt.title('Average Time vs Episodes: before optimization')
 
-plt.savefig('results_before.jpg')
+plt.savefig('outcomes.jpg')
 plt.close()
